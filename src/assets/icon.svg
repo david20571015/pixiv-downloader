@@ -1,0 +1,7 @@
+
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <rect width="128" height="128" rx="24" fill="#0096FA"/>
+
+  <text x="16" y="92" font-size="100" font-family="Style Script" fill="white" font-weight="800">P</text>
+ <path d="M90 80 V106 M90 106 L75 92 M90 106 L105 92"
+        stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>

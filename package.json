@@ -1,0 +1,38 @@
+{
+  "name": "pixiv-downloader",
+  "description": "A Chrome extension to download images from Pixiv",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip",
+    "postinstall": "wxt prepare",
+    "format": "prettier --write src/",
+    "lint": "eslint src/ --fix",
+    "check:compile": "vue-tsc --noEmit",
+    "check:format": "prettier --check src/",
+    "check:lint": "eslint src/"
+  },
+  "dependencies": {
+    "@webext-core/proxy-service": "^1.2.1",
+    "vue": "^3.5.12",
+    "vuetify": "^3.8.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.24.0",
+    "@wxt-dev/auto-icons": "^1.0.2",
+    "@wxt-dev/module-vue": "^1.0.1",
+    "chrome-types": "^0.1.347",
+    "eslint": "^9.24.0",
+    "eslint-plugin-vue": "^10.0.0",
+    "globals": "^16.0.0",
+    "prettier": "3.5.3",
+    "typescript": "5.6.3",
+    "typescript-eslint": "^8.29.0",
+    "vite-plugin-vuetify": "^2.1.1",
+    "vue-tsc": "^2.1.10",
+    "wxt": "^0.20.0"
+  }
+}

@@ -14,7 +14,7 @@ A Chrome extension to easily download illustrations from Pixiv, supporting custo
 ## Installation & Usage
 
 1. **Install**
-   - Download the latest **pixiv-downloader-{version}-chrome.zip**
+   - Download the latest `pixiv-downloader-{version}-chrome.zip`
  from the [releases page](https://github.com/david20571015/pixiv-downloader/releases)
    - Unzip the downloaded file
    - Open Chrome Extensions page and enable Developer Mode

@@ -14,9 +14,10 @@
 ## 安裝與使用
 
 1. **安裝**
-   - 執行 `npm run build` 打包專案
+   - 前往 [releases 頁面](https://github.com/david20571015/pixiv-downloader/releases) 下載最新版 `pixiv-downloader-{version}-chrome.zip`
+   - 解壓縮 zip 檔
    - 在 Chrome 擴充功能頁開啟「開發人員模式」
-   - 點擊「載入未封裝項目」，選擇 `dist/` 資料夾
+   - 點擊「載入未封裝項目」，選擇解壓縮後的 `pixiv-downloader-{version}-chrome` 資料夾
 
 2. **下載圖片**
    - 進入 Pixiv 插畫頁面

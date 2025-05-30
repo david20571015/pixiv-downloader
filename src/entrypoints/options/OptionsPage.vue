@@ -1,9 +1,17 @@
 <script setup lang="ts">
-import { onMounted, reactive, toRaw } from 'vue'
+import { onMounted, reactive, toRaw, ref } from 'vue'
 import { OptionStore, type Options } from '@/utils/options-store'
-import { filePathPlaceholderDefinitions, conflictActions } from './constant'
+import {
+  filePathPlaceholderDefinitions,
+  conflictActions,
+  snackbarTimeout,
+} from './constant'
 
 const currentOptions = reactive({}) as Options
+const showSaveSuccess = ref(false)
+const showSaveError = ref(false)
+const showResetSuccess = ref(false)
+const showResetError = ref(false)
 
 async function loadOptions() {
   Object.assign(currentOptions, await OptionStore.getOptions())
@@ -12,12 +20,24 @@ async function loadOptions() {
 onMounted(loadOptions)
 
 async function saveOptions() {
-  await OptionStore.setOptions(toRaw(currentOptions))
+  try {
+    await OptionStore.setOptions(toRaw(currentOptions))
+    showSaveSuccess.value = true
+  } catch (error) {
+    console.error('Failed to save options:', error)
+    showSaveError.value = true
+  }
 }
 
 async function resetOptions() {
-  await OptionStore.resetOptions()
-  await loadOptions()
+  try {
+    await OptionStore.resetOptions()
+    await loadOptions()
+    showResetSuccess.value = true
+  } catch (error) {
+    console.error('Failed to reset options:', error)
+    showResetError.value = true
+  }
 }
 </script>
 
@@ -44,5 +64,37 @@ async function resetOptions() {
       <v-btn color="primary" @click="saveOptions">Save</v-btn>
       <v-btn color="secondary" @click="resetOptions">Reset</v-btn>
     </v-container>
+
+    <!-- Success Messages -->
+    <v-snackbar
+      v-model="showSaveSuccess"
+      color="success"
+      :timeout="snackbarTimeout"
+    >
+      Settings saved successfully!
+    </v-snackbar>
+    <v-snackbar
+      v-model="showResetSuccess"
+      color="success"
+      :timeout="snackbarTimeout"
+    >
+      Settings reset to default successfully!
+    </v-snackbar>
+
+    <!-- Error Messages -->
+    <v-snackbar
+      v-model="showSaveError"
+      color="error"
+      :timeout="snackbarTimeout"
+    >
+      Failed to save settings. Please try again.
+    </v-snackbar>
+    <v-snackbar
+      v-model="showResetError"
+      color="error"
+      :timeout="snackbarTimeout"
+    >
+      Failed to reset settings. Please try again.
+    </v-snackbar>
   </v-container>
 </template>

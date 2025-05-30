@@ -6,18 +6,27 @@ interface PlaceholderDefinition {
   description: string
 }
 
-export const filePathPlaceholderDefinitions: PlaceholderDefinition[] = [
-  { placeholder: '${userName}', description: 'User nickname' },
-  { placeholder: '${userId}', description: 'User ID' },
-  { placeholder: '${userAccount}', description: 'User account' },
-  { placeholder: '${title}', description: 'Artwork title' },
-  { placeholder: '${id}', description: 'Artwork ID' },
-] as const
+/**
+ * Download configuration including filename templates and conflict handling
+ */
+export const DOWNLOAD_CONFIG = {
+  PLACEHOLDERS: [
+    { placeholder: '${userName}', description: 'User nickname' },
+    { placeholder: '${userId}', description: 'User ID' },
+    { placeholder: '${userAccount}', description: 'User account' },
+    { placeholder: '${title}', description: 'Artwork title' },
+    { placeholder: '${id}', description: 'Artwork ID' },
+  ] as PlaceholderDefinition[],
+  CONFLICT_ACTIONS: [
+    'uniquify',
+    'overwrite',
+    'prompt',
+  ] as Options['conflictAction'][],
+} as const
 
-export const conflictActions: Options['conflictAction'][] = [
-  'uniquify',
-  'overwrite',
-  'prompt',
-] as const
-
-export const snackbarTimeout = 2500 as const // 2.5 seconds
+/**
+ * UI related constants for options page
+ */
+export const OPTIONS_UI_CONFIG = {
+  SNACKBAR_TIMEOUT: 2500,
+} as const

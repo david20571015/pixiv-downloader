@@ -27,6 +27,29 @@ export function sanitizeFilename(str: string): string {
   return str.replace(/[\\/:*?"<>|]/g, '_').trim()
 }
 
+export function buildFilename(
+  filePathTemplate: string,
+  metadata: ArtworkMetadata,
+): string {
+  const replacements: Record<ArtworkTemplateKeys, string> = {
+    userName: sanitizeFilename(metadata.userName),
+    userId: metadata.userId,
+    userAccount: sanitizeFilename(metadata.userAccount),
+    title: sanitizeFilename(metadata.title),
+    id: metadata.id,
+  }
+
+  const pattern = new RegExp(
+    `\\$\\{(${Object.keys(replacements).join('|')})\\}`,
+    'g',
+  )
+
+  return filePathTemplate.replace(
+    pattern,
+    (_, key: ArtworkTemplateKeys) => replacements[key] ?? '',
+  )
+}
+
 function createArtworkDownloader() {
   const PIXIV_REVERSE_PROXY_HOSTNAME = 'i.pixiv.cat'
 

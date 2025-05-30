@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
-import { getArtworkDownloader, buildFilename } from '@/utils/downloader'
+import {
+  getArtworkDownloader,
+  buildFilename,
+  fetchArtworkMetadata,
+} from '@/utils/downloader'
 import { OptionStore } from '@/utils/options-store'
-import { useArtworkMetadata } from '@/composables/useArtworkMetadata'
 
 enum DownloadState {
   UNDOWNLOADED = 'Download',
@@ -17,13 +20,13 @@ const isDownloadable = computed(
 )
 
 const artworkId = document.location.pathname.split('/').pop()!
-const { metadataPromise } = useArtworkMetadata(artworkId)
+const metadataPromise = fetchArtworkMetadata(artworkId)
+const artworkDownloader = getArtworkDownloader()
 
 async function downloadFile() {
   if (!isDownloadable.value) return
 
   downloadState.value = DownloadState.DOWNLOADING
-  const artworkDownloader = getArtworkDownloader()
 
   try {
     const [artworkMetadata, options] = await Promise.all([

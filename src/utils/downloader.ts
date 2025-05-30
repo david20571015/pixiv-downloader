@@ -23,7 +23,26 @@ type KeysMatching<T, V> = keyof {
 
 export type ArtworkTemplateKeys = KeysMatching<ArtworkMetadata, string>
 
-export function sanitizeFilename(str: string): string {
+export async function fetchArtworkMetadata(
+  artworkId: string,
+): Promise<ArtworkMetadata> {
+  const url = `https://www.pixiv.net/ajax/illust/${artworkId}`
+  const response = await fetch(url, { credentials: 'include' })
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch artwork metadata: ${response.status}`)
+  }
+
+  const data = await response.json()
+
+  if (!data.body) {
+    throw new Error('Invalid response format')
+  }
+
+  return data.body as ArtworkMetadata
+}
+
+function sanitizeFilename(str: string): string {
   return str.replace(/[\\/:*?"<>|]/g, '_').trim()
 }
 

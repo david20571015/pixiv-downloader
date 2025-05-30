@@ -18,6 +18,7 @@ const downloadState = ref(DownloadState.UNDOWNLOADED)
 const isDownloadable = computed(
   () => downloadState.value === DownloadState.UNDOWNLOADED,
 )
+const showDownloadError = ref(false)
 
 const artworkId = document.location.pathname.split('/').pop()!
 const metadataPromise = fetchArtworkMetadata(artworkId)
@@ -44,7 +45,7 @@ async function downloadFile() {
     downloadState.value = DownloadState.DOWNLOADED
   } catch (error) {
     console.error('Download failed:', error)
-    alert('Failed to download artwork. Please try again later.')
+    showDownloadError.value = true
     downloadState.value = DownloadState.UNDOWNLOADED
   }
 }
@@ -54,6 +55,9 @@ async function downloadFile() {
   <button type="button" @click="downloadFile" :disabled="!isDownloadable">
     {{ downloadState }}
   </button>
+  <v-snackbar v-model="showDownloadError" color="tonal" timeout="2500">
+    Failed to download artwork. Please try again later.
+  </v-snackbar>
 </template>
 
 <style scoped>

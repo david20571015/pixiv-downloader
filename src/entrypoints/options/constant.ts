@@ -19,3 +19,5 @@ export const conflictActions: Options['conflictAction'][] = [
   'overwrite',
   'prompt',
 ] as const
+
+export const snackbarTimeout = 2500 as const // 2.5 seconds

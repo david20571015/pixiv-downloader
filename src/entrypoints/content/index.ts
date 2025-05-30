@@ -1,4 +1,7 @@
 import { createApp } from 'vue'
+import 'vuetify/styles'
+import { createVuetify } from 'vuetify'
+import { VSnackbar } from 'vuetify/components/VSnackbar'
 
 import { ContentScriptContext } from '#imports'
 
@@ -28,7 +31,12 @@ function mountDownloadButton(ctx: ContentScriptContext): void {
   container.id = downloadButtonId
   container.style.marginRight = '20px'
 
-  const app = createApp(DownloadButton)
+  const vuetify = createVuetify({
+    components: {
+      VSnackbar,
+    },
+  })
+  const app = createApp(DownloadButton).use(vuetify)
 
   const ui = createIntegratedUi(ctx, {
     position: 'inline',

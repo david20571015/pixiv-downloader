@@ -1,3 +1,4 @@
+import { PIXIV_CONFIG } from '@/entrypoints/content/constants'
 import { defineProxyService } from '@webext-core/proxy-service'
 
 export interface ArtworkUrls {
@@ -26,7 +27,7 @@ export type ArtworkTemplateKeys = KeysMatching<ArtworkMetadata, string>
 export async function fetchArtworkMetadata(
   artworkId: string,
 ): Promise<ArtworkMetadata> {
-  const url = `https://www.pixiv.net/ajax/illust/${artworkId}`
+  const url = `${PIXIV_CONFIG.API_BASE_URL}/${artworkId}`
   const response = await fetch(url, { credentials: 'include' })
 
   if (!response.ok) {
@@ -72,8 +73,6 @@ export function buildFilename(
 }
 
 function createArtworkDownloader() {
-  const PIXIV_REVERSE_PROXY_HOSTNAME = 'i.pixiv.cat'
-
   return {
     async downloadArtwork(
       filename: string,
@@ -82,7 +81,7 @@ function createArtworkDownloader() {
     ) {
       const parsedUrl = new URL(url)
       const ext = parsedUrl.pathname.split('.').pop() ?? 'png'
-      parsedUrl.hostname = PIXIV_REVERSE_PROXY_HOSTNAME
+      parsedUrl.hostname = PIXIV_CONFIG.PROXY_HOSTNAME
 
       return await chrome.downloads.download({
         url: parsedUrl.href,

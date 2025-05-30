@@ -23,8 +23,52 @@ type KeysMatching<T, V> = keyof {
 
 export type ArtworkTemplateKeys = KeysMatching<ArtworkMetadata, string>
 
-export function sanitizeFilename(str: string): string {
+export async function fetchArtworkMetadata(
+  artworkId: string,
+): Promise<ArtworkMetadata> {
+  const url = `https://www.pixiv.net/ajax/illust/${artworkId}`
+  const response = await fetch(url, { credentials: 'include' })
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch artwork metadata: ${response.status} (${response.statusText}) from ${url}`,
+    )
+  }
+
+  const data = await response.json()
+
+  if (!data.body) {
+    throw new Error('Invalid response format')
+  }
+
+  return data.body as ArtworkMetadata
+}
+
+function sanitizeFilename(str: string): string {
   return str.replace(/[\\/:*?"<>|]/g, '_').trim()
+}
+
+export function buildFilename(
+  filePathTemplate: string,
+  metadata: ArtworkMetadata,
+): string {
+  const replacements: Record<ArtworkTemplateKeys, string> = {
+    userName: sanitizeFilename(metadata.userName),
+    userId: metadata.userId,
+    userAccount: sanitizeFilename(metadata.userAccount),
+    title: sanitizeFilename(metadata.title),
+    id: metadata.id,
+  }
+
+  const pattern = new RegExp(
+    `\\$\\{(${Object.keys(replacements).join('|')})\\}`,
+    'g',
+  )
+
+  return filePathTemplate.replace(
+    pattern,
+    (_, key: ArtworkTemplateKeys) => replacements[key] ?? '',
+  )
 }
 
 function createArtworkDownloader() {

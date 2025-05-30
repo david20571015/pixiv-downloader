@@ -30,7 +30,9 @@ export async function fetchArtworkMetadata(
   const response = await fetch(url, { credentials: 'include' })
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch artwork metadata: ${response.status}`)
+    throw new Error(
+      `Failed to fetch artwork metadata: ${response.status} (${response.statusText}) from ${url}`,
+    )
   }
 
   const data = await response.json()

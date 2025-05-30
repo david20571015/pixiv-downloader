@@ -7,6 +7,7 @@ import {
   fetchArtworkMetadata,
 } from '@/utils/downloader'
 import { OptionStore } from '@/utils/options-store'
+import { UI_CONFIG } from './constants'
 
 enum DownloadState {
   UNDOWNLOADED = 'Download',
@@ -55,7 +56,11 @@ async function downloadFile() {
   <button type="button" @click="downloadFile" :disabled="!isDownloadable">
     {{ downloadState }}
   </button>
-  <v-snackbar v-model="showDownloadError" color="tonal" timeout="2500">
+  <v-snackbar
+    v-model="showDownloadError"
+    color="tonal"
+    :timeout="UI_CONFIG.ERROR_TIMEOUT"
+  >
     Failed to download artwork. Please try again later.
   </v-snackbar>
 </template>
@@ -64,6 +69,7 @@ async function downloadFile() {
 button {
   display: inline-block;
   height: 32px;
+  margin-right: 20px;
   line-height: 32px;
   font-weight: 700;
   cursor: pointer;

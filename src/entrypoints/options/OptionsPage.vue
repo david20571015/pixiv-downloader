@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, toRaw, ref } from 'vue'
 import { OptionStore, type Options } from '@/utils/options-store'
-import {
-  filePathPlaceholderDefinitions,
-  conflictActions,
-  snackbarTimeout,
-} from './constant'
+import { DOWNLOAD_CONFIG, OPTIONS_UI_CONFIG } from './constant'
 
 const currentOptions = reactive({}) as Options
 const showSaveSuccess = ref(false)
@@ -51,13 +47,13 @@ async function resetOptions() {
     <v-data-table
       hide-default-footer
       disable-sort
-      :items="filePathPlaceholderDefinitions"
+      :items="DOWNLOAD_CONFIG.PLACEHOLDERS"
     />
 
     <v-select
       v-model="currentOptions.conflictAction"
       label="Filename conflict action"
-      :items="conflictActions"
+      :items="DOWNLOAD_CONFIG.CONFLICT_ACTIONS"
     />
 
     <v-container class="d-flex flex-row-reverse ga-2">
@@ -69,14 +65,14 @@ async function resetOptions() {
     <v-snackbar
       v-model="showSaveSuccess"
       color="success"
-      :timeout="snackbarTimeout"
+      :timeout="OPTIONS_UI_CONFIG.SNACKBAR_TIMEOUT"
     >
       Settings saved successfully!
     </v-snackbar>
     <v-snackbar
       v-model="showResetSuccess"
       color="success"
-      :timeout="snackbarTimeout"
+      :timeout="OPTIONS_UI_CONFIG.SNACKBAR_TIMEOUT"
     >
       Settings reset to default successfully!
     </v-snackbar>
@@ -85,14 +81,14 @@ async function resetOptions() {
     <v-snackbar
       v-model="showSaveError"
       color="error"
-      :timeout="snackbarTimeout"
+      :timeout="OPTIONS_UI_CONFIG.SNACKBAR_TIMEOUT"
     >
       Failed to save settings. Please try again.
     </v-snackbar>
     <v-snackbar
       v-model="showResetError"
       color="error"
-      :timeout="snackbarTimeout"
+      :timeout="OPTIONS_UI_CONFIG.SNACKBAR_TIMEOUT"
     >
       Failed to reset settings. Please try again.
     </v-snackbar>

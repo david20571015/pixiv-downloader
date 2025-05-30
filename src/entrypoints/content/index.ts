@@ -4,16 +4,14 @@ import { createVuetify } from 'vuetify'
 import { VSnackbar } from 'vuetify/components/VSnackbar'
 
 import { ContentScriptContext } from '#imports'
+import { PIXIV_CONFIG, UI_CONFIG } from './constants'
 
 import DownloadButton from './DownloadButton.vue'
 
-const artworksPattern = new MatchPattern('https://www.pixiv.net/artworks/*')
-
-const downloadButtonId = 'download-button'
-const targetSelector = 'main section div:first-child section'
+const artworksPattern = new MatchPattern(PIXIV_CONFIG.ARTWORKS_PATTERN)
 
 export default defineContentScript({
-  matches: ['https://www.pixiv.net/*'],
+  matches: [PIXIV_CONFIG.SITE_PATTERN],
   main(ctx: ContentScriptContext) {
     ctx.addEventListener(window, 'wxt:locationchange', ({ newUrl }) => {
       if (artworksPattern.includes(newUrl)) {
@@ -24,12 +22,11 @@ export default defineContentScript({
 })
 
 function mountDownloadButton(ctx: ContentScriptContext): void {
-  const existing = document.getElementById(downloadButtonId)
+  const existing = document.getElementById(UI_CONFIG.DOWNLOAD_BUTTON_ID)
   if (existing) return
 
   const container = document.createElement('div')
-  container.id = downloadButtonId
-  container.style.marginRight = '20px'
+  container.id = UI_CONFIG.DOWNLOAD_BUTTON_ID
 
   const vuetify = createVuetify({
     components: {
@@ -40,10 +37,10 @@ function mountDownloadButton(ctx: ContentScriptContext): void {
 
   const ui = createIntegratedUi(ctx, {
     position: 'inline',
-    anchor: targetSelector,
+    anchor: UI_CONFIG.TARGET_SELECTOR,
     onMount: (mountPoint: HTMLElement) => {
       mountPoint.replaceWith(container)
-      app.mount(`#${downloadButtonId}`)
+      app.mount(`#${UI_CONFIG.DOWNLOAD_BUTTON_ID}`)
     },
   })
 

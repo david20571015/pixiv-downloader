@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
-import {
-  getArtworkDownloader,
-  sanitizeFilename,
-  type ArtworkTemplateKeys,
-  type ArtworkMetadata,
-} from '@/utils/downloader'
+import { getArtworkDownloader, buildFilename } from '@/utils/downloader'
 import { OptionStore } from '@/utils/options-store'
+import { useArtworkMetadata } from '@/composables/useArtworkMetadata'
 
 enum DownloadState {
   UNDOWNLOADED = 'Download',
@@ -21,7 +17,7 @@ const isDownloadable = computed(
 )
 
 const artworkId = document.location.pathname.split('/').pop()!
-const prefetchdArtworkMetadata = fetchArtworkMetadata(artworkId)
+const { metadataPromise } = useArtworkMetadata(artworkId)
 
 async function downloadFile() {
   if (!isDownloadable.value) return
@@ -31,7 +27,7 @@ async function downloadFile() {
 
   try {
     const [artworkMetadata, options] = await Promise.all([
-      prefetchdArtworkMetadata,
+      metadataPromise,
       OptionStore.getOptions(),
     ])
     const filename = buildFilename(options.filenameTemplate, artworkMetadata)
@@ -48,37 +44,6 @@ async function downloadFile() {
     alert('Failed to download artwork. Please try again later.')
     downloadState.value = DownloadState.UNDOWNLOADED
   }
-}
-
-async function fetchArtworkMetadata(artworkId: string) {
-  const url = `https://www.pixiv.net/ajax/illust/${artworkId}`
-  const data = await fetch(url, { credentials: 'include' }).then((res) =>
-    res.json(),
-  )
-  return data.body as ArtworkMetadata
-}
-
-function buildFilename(
-  filePathTemplate: string,
-  metadata: ArtworkMetadata,
-): string {
-  const replacements: Record<ArtworkTemplateKeys, string> = {
-    userName: sanitizeFilename(metadata.userName),
-    userId: metadata.userId,
-    userAccount: sanitizeFilename(metadata.userAccount),
-    title: sanitizeFilename(metadata.title),
-    id: metadata.id,
-  }
-
-  const pattern = new RegExp(
-    `\\$\\{(${Object.keys(replacements).join('|')})\\}`,
-    'g',
-  )
-
-  return filePathTemplate.replace(
-    pattern,
-    (_, key: ArtworkTemplateKeys) => replacements[key] ?? '',
-  )
 }
 </script>
 

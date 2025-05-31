@@ -1,4 +1,4 @@
-import type { ArtworkUrls } from './downloader'
+import type { ArtworkUrls } from '@/services/pixiv-api'
 
 export interface Options {
   filenameTemplate: string

@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
-import {
-  getArtworkDownloader,
-  buildFilename,
-  fetchArtworkMetadata,
-} from '@/utils/downloader'
+import { PixivApiService } from '@/services/pixiv-api'
+import { getArtworkDownloader, buildFilename } from '@/utils/downloader'
 import { OptionStore } from '@/utils/options-store'
 import { UI_CONFIG } from './constants'
 
@@ -22,7 +19,7 @@ const isDownloadable = computed(
 const showDownloadError = ref(false)
 
 const artworkId = document.location.pathname.split('/').pop()!
-const metadataPromise = fetchArtworkMetadata(artworkId)
+const metadataPromise = PixivApiService.fetchArtworkMetadata(artworkId)
 const artworkDownloader = getArtworkDownloader()
 
 async function downloadFile() {

@@ -1,49 +1,12 @@
 import { PIXIV_CONFIG } from '@/entrypoints/content/constants'
+import type { ArtworkMetadata } from '@/services/pixiv-api'
 import { defineProxyService } from '@webext-core/proxy-service'
-
-export interface ArtworkUrls {
-  mini: string
-  thumb: string
-  small: string
-  regular: string
-  original: string
-}
-
-export interface ArtworkMetadata {
-  title: string
-  id: string
-  userName: string
-  userId: string
-  userAccount: string
-  urls: ArtworkUrls
-}
 
 type KeysMatching<T, V> = keyof {
   [P in keyof T as T[P] extends V ? P : never]: P
 }
 
 export type ArtworkTemplateKeys = KeysMatching<ArtworkMetadata, string>
-
-export async function fetchArtworkMetadata(
-  artworkId: string,
-): Promise<ArtworkMetadata> {
-  const url = `${PIXIV_CONFIG.API_BASE_URL}/${artworkId}`
-  const response = await fetch(url, { credentials: 'include' })
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch artwork metadata: ${response.status} (${response.statusText}) from ${url}`,
-    )
-  }
-
-  const data = await response.json()
-
-  if (!data.body) {
-    throw new Error('Invalid response format')
-  }
-
-  return data.body as ArtworkMetadata
-}
 
 function sanitizeFilename(str: string): string {
   return str.replace(/[\\/:*?"<>|]/g, '_').trim()

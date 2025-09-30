@@ -2,7 +2,7 @@
   "name": "pixiv-downloader",
   "description": "A Chrome extension to download images from Pixiv",
   "private": true,
-  "version": "0.2.3",
+  "version": "0.2.4",
   "type": "module",
   "scripts": {
     "dev": "wxt",

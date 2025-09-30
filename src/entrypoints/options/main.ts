@@ -6,6 +6,9 @@ import { VSnackbar } from 'vuetify/components/VSnackbar'
 
 import OptionsPage from './OptionsPage.vue'
 
+/**
+ * Configure Vuetify with custom defaults
+ */
 const vuetify = createVuetify({
   defaults: {
     VBtn: {
@@ -18,4 +21,8 @@ const vuetify = createVuetify({
   },
 })
 
+/**
+ * Options page entry point
+ * Initializes Vue application with Vuetify and mounts the options page
+ */
 createApp(OptionsPage).use(vuetify).mount('#app')

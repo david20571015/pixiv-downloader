@@ -6,6 +6,9 @@ import { getArtworkDownloader, buildFilename } from '@/utils/downloader'
 import { OptionStore } from '@/utils/options-store'
 import { UI_CONFIG } from './constants'
 
+/**
+ * Enum for download button states
+ */
 enum DownloadState {
   UNDOWNLOADED = 'Download',
   DOWNLOADING = 'Downloading...',
@@ -18,11 +21,22 @@ const isDownloadable = computed(
 )
 const showDownloadError = ref(false)
 
+/**
+ * Extract artwork ID from current URL
+ */
 const artworkId = document.location.pathname.split('/').pop()!
+
+/**
+ * Pre-fetch metadata to improve download performance
+ */
 const metadataPromise = PixivApiService.fetchArtworkMetadata(artworkId)
 const artworkDownloader = getArtworkDownloader()
 
-async function downloadFile() {
+/**
+ * Handles the download process for the current artwork
+ * Coordinates metadata fetching, filename building, and download initiation
+ */
+async function downloadFile(): Promise<void> {
   if (!isDownloadable.value) return
 
   downloadState.value = DownloadState.DOWNLOADING
@@ -56,7 +70,7 @@ async function downloadFile() {
   <v-snackbar
     v-model="showDownloadError"
     color="tonal"
-    :timeout="UI_CONFIG.ERROR_TIMEOUT"
+    :timeout="UI_CONFIG.ERROR_TIMEOUT_MS"
   >
     Failed to download artwork. Please try again later.
   </v-snackbar>

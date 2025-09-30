@@ -9,13 +9,20 @@ const showSaveError = ref(false)
 const showResetSuccess = ref(false)
 const showResetError = ref(false)
 
-async function loadOptions() {
+/**
+ * Loads current options from storage into the reactive state
+ */
+async function loadOptions(): Promise<void> {
   Object.assign(currentOptions, await OptionStore.getOptions())
 }
 
 onMounted(loadOptions)
 
-async function saveOptions() {
+/**
+ * Saves current options to storage
+ * Shows success or error notification based on result
+ */
+async function saveOptions(): Promise<void> {
   try {
     await OptionStore.setOptions(toRaw(currentOptions))
     showSaveSuccess.value = true
@@ -25,7 +32,12 @@ async function saveOptions() {
   }
 }
 
-async function resetOptions() {
+/**
+ * Resets options to default values
+ * Reloads the form with default values
+ * Shows success or error notification based on result
+ */
+async function resetOptions(): Promise<void> {
   try {
     await OptionStore.resetOptions()
     await loadOptions()
@@ -65,14 +77,14 @@ async function resetOptions() {
     <v-snackbar
       v-model="showSaveSuccess"
       color="success"
-      :timeout="OPTIONS_UI_CONFIG.SNACKBAR_TIMEOUT"
+      :timeout="OPTIONS_UI_CONFIG.SNACKBAR_TIMEOUT_MS"
     >
       Settings saved successfully!
     </v-snackbar>
     <v-snackbar
       v-model="showResetSuccess"
       color="success"
-      :timeout="OPTIONS_UI_CONFIG.SNACKBAR_TIMEOUT"
+      :timeout="OPTIONS_UI_CONFIG.SNACKBAR_TIMEOUT_MS"
     >
       Settings reset to default successfully!
     </v-snackbar>
@@ -81,14 +93,14 @@ async function resetOptions() {
     <v-snackbar
       v-model="showSaveError"
       color="error"
-      :timeout="OPTIONS_UI_CONFIG.SNACKBAR_TIMEOUT"
+      :timeout="OPTIONS_UI_CONFIG.SNACKBAR_TIMEOUT_MS"
     >
       Failed to save settings. Please try again.
     </v-snackbar>
     <v-snackbar
       v-model="showResetError"
       color="error"
-      :timeout="OPTIONS_UI_CONFIG.SNACKBAR_TIMEOUT"
+      :timeout="OPTIONS_UI_CONFIG.SNACKBAR_TIMEOUT_MS"
     >
       Failed to reset settings. Please try again.
     </v-snackbar>

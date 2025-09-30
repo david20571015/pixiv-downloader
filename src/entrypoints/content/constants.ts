@@ -3,7 +3,8 @@
  */
 
 /**
- * Pixiv related constants
+ * Pixiv service configuration
+ * All values are readonly to ensure immutability
  */
 export const PIXIV_CONFIG = {
   PROXY_HOSTNAME: 'i.pixiv.cat',
@@ -13,10 +14,11 @@ export const PIXIV_CONFIG = {
 } as const
 
 /**
- * UI related constants
+ * UI configuration for content script
+ * All values are readonly to ensure immutability
  */
 export const UI_CONFIG = {
   DOWNLOAD_BUTTON_ID: 'download-button',
   TARGET_SELECTOR: 'main section div:first-child section',
-  ERROR_TIMEOUT: 2500,
+  ERROR_TIMEOUT_MS: 2500,
 } as const

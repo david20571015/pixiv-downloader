@@ -7,23 +7,23 @@ import { PIXIV_CONFIG } from '@/entrypoints/content/constants'
  * Available image sizes for Pixiv artworks
  */
 export interface ArtworkUrls {
-  mini: string
-  thumb: string
-  small: string
-  regular: string
-  original: string
+  readonly mini: string
+  readonly thumb: string
+  readonly small: string
+  readonly regular: string
+  readonly original: string
 }
 
 /**
  * Artwork metadata from Pixiv API
  */
 export interface ArtworkMetadata {
-  title: string
-  id: string
-  userName: string
-  userId: string
-  userAccount: string
-  urls: ArtworkUrls
+  readonly title: string
+  readonly id: string
+  readonly userName: string
+  readonly userId: string
+  readonly userAccount: string
+  readonly urls: ArtworkUrls
 }
 
 /**
@@ -41,18 +41,56 @@ export class PixivApiError extends Error {
 }
 
 /**
+ * Interface for API response validation
+ */
+interface ApiResponseValidator {
+  validate(data: unknown): boolean
+  getValidationError(): string
+}
+
+/**
+ * Validates Pixiv API response structure
+ */
+class PixivApiResponseValidator implements ApiResponseValidator {
+  private validationError = ''
+
+  validate(data: unknown): boolean {
+    if (!data || typeof data !== 'object') {
+      this.validationError = 'Invalid response: not an object'
+      return false
+    }
+
+    if (!('body' in data)) {
+      this.validationError = 'Invalid response format: missing body'
+      return false
+    }
+
+    return true
+  }
+
+  getValidationError(): string {
+    return this.validationError
+  }
+}
+
+/**
  * Service for interacting with Pixiv API
+ * Follows Single Responsibility Principle
  */
 export class PixivApiService {
+  private readonly validator: ApiResponseValidator
+
+  constructor(validator?: ApiResponseValidator) {
+    this.validator = validator ?? new PixivApiResponseValidator()
+  }
+
   /**
    * Fetch artwork metadata from Pixiv API
    * @param artworkId - The artwork ID to fetch metadata for
    * @returns Promise resolving to artwork metadata
-   * @throws PixivApiError when API request fails
+   * @throws {PixivApiError} when API request fails or response is invalid
    */
-  static async fetchArtworkMetadata(
-    artworkId: string,
-  ): Promise<ArtworkMetadata> {
+  async fetchArtworkMetadata(artworkId: string): Promise<ArtworkMetadata> {
     const url = `${PIXIV_CONFIG.API_BASE_URL}/${artworkId}`
 
     try {
@@ -66,17 +104,17 @@ export class PixivApiService {
         )
       }
 
-      const data = await response.json()
+      const data: unknown = await response.json()
 
-      if (!data.body) {
+      if (!this.validator.validate(data)) {
         throw new PixivApiError(
-          'Invalid response format: missing body',
+          this.validator.getValidationError(),
           undefined,
           url,
         )
       }
 
-      return data.body as ArtworkMetadata
+      return (data as { body: ArtworkMetadata }).body
     } catch (error) {
       if (error instanceof PixivApiError) {
         throw error
@@ -89,5 +127,16 @@ export class PixivApiService {
         url,
       )
     }
+  }
+
+  /**
+   * Static method for backward compatibility
+   * @deprecated Create an instance of PixivApiService instead
+   */
+  static async fetchArtworkMetadata(
+    artworkId: string,
+  ): Promise<ArtworkMetadata> {
+    const service = new PixivApiService()
+    return service.fetchArtworkMetadata(artworkId)
   }
 }

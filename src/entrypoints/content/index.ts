@@ -13,6 +13,12 @@ const artworksPattern = new MatchPattern(PIXIV_CONFIG.ARTWORKS_PATTERN)
 export default defineContentScript({
   matches: [PIXIV_CONFIG.SITE_PATTERN],
   main(ctx: ContentScriptContext) {
+    // Check if we're already on an artwork page on initial load
+    if (artworksPattern.includes(window.location.href)) {
+      mountDownloadButton(ctx)
+    }
+
+    // Listen for navigation changes within the same tab
     ctx.addEventListener(window, 'wxt:locationchange', ({ newUrl }) => {
       if (artworksPattern.includes(newUrl)) {
         mountDownloadButton(ctx)

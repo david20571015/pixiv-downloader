@@ -19,33 +19,19 @@ export const DEFAULT_OPTIONS: Readonly<Options> = {
 } as const
 
 /**
- * Storage interface for managing extension options
+ * Storage keys for options
  */
-interface StorageAdapter {
-  get(defaults: Options): Promise<Options>
-  set(options: Partial<Options>): Promise<void>
-}
+const STORAGE_KEYS = {
+  FILENAME_TEMPLATE: 'local:filenameTemplate',
+  CONFLICT_ACTION: 'local:conflictAction',
+  IMAGE_SIZE: 'local:imageSize',
+} as const
 
 /**
- * Chrome storage implementation
- */
-class ChromeStorageAdapter implements StorageAdapter {
-  async get(defaults: Options): Promise<Options> {
-    return (await chrome.storage.local.get(defaults)) as Options
-  }
-
-  async set(options: Partial<Options>): Promise<void> {
-    await chrome.storage.local.set(options)
-  }
-}
-
-/**
- * Service for managing user options with dependency injection
+ * Service for managing user options using WXT storage
  * Follows Single Responsibility Principle by focusing only on option management
  */
 export class OptionsService {
-  constructor(private readonly storage: StorageAdapter) {}
-
   /**
    * Retrieves current options from storage
    * @returns Promise resolving to current options
@@ -53,7 +39,19 @@ export class OptionsService {
    */
   async getOptions(): Promise<Options> {
     try {
-      return await this.storage.get(DEFAULT_OPTIONS)
+      const [filenameTemplate, conflictAction, imageSize] = await Promise.all([
+        storage.getItem<string>(STORAGE_KEYS.FILENAME_TEMPLATE),
+        storage.getItem<chrome.downloads.FilenameConflictAction>(
+          STORAGE_KEYS.CONFLICT_ACTION,
+        ),
+        storage.getItem<keyof ArtworkUrls>(STORAGE_KEYS.IMAGE_SIZE),
+      ])
+
+      return {
+        filenameTemplate: filenameTemplate ?? DEFAULT_OPTIONS.filenameTemplate,
+        conflictAction: conflictAction ?? DEFAULT_OPTIONS.conflictAction,
+        imageSize: imageSize ?? DEFAULT_OPTIONS.imageSize,
+      }
     } catch (error) {
       console.error('Error retrieving options:', error)
       throw new Error(
@@ -69,7 +67,28 @@ export class OptionsService {
    */
   async setOptions(options: Partial<Options>): Promise<void> {
     try {
-      await this.storage.set(options)
+      const updates: Promise<void>[] = []
+
+      if (options.filenameTemplate !== undefined) {
+        updates.push(
+          storage.setItem(
+            STORAGE_KEYS.FILENAME_TEMPLATE,
+            options.filenameTemplate,
+          ),
+        )
+      }
+      if (options.conflictAction !== undefined) {
+        updates.push(
+          storage.setItem(STORAGE_KEYS.CONFLICT_ACTION, options.conflictAction),
+        )
+      }
+      if (options.imageSize !== undefined) {
+        updates.push(
+          storage.setItem(STORAGE_KEYS.IMAGE_SIZE, options.imageSize),
+        )
+      }
+
+      await Promise.all(updates)
     } catch (error) {
       console.error('Error saving options:', error)
       throw new Error(
@@ -86,9 +105,3 @@ export class OptionsService {
     await this.setOptions(DEFAULT_OPTIONS)
   }
 }
-
-/**
- * Singleton instance for backward compatibility
- * @deprecated Use OptionsService class directly with dependency injection
- */
-export const OptionStore = new OptionsService(new ChromeStorageAdapter())

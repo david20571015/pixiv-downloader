@@ -25,7 +25,7 @@ interface FilenameSanitizer {
  * Default implementation of filename sanitization
  * Removes or replaces characters invalid in filenames
  */
-class DefaultFilenameSanitizer implements FilenameSanitizer {
+export class DefaultFilenameSanitizer implements FilenameSanitizer {
   private readonly INVALID_CHARS = /[\\/:*?"<>|]/g
   private readonly REPLACEMENT = '_'
 
@@ -66,24 +66,6 @@ export class FilenameBuilder {
       (_, key: ArtworkTemplateKeys) => replacements[key] ?? '',
     )
   }
-}
-
-/**
- * Default instance for backward compatibility
- */
-const defaultFilenameBuilder = new FilenameBuilder(
-  new DefaultFilenameSanitizer(),
-)
-
-/**
- * Builds a filename from template and metadata
- * @deprecated Use FilenameBuilder class directly for better testability
- */
-export function buildFilename(
-  filePathTemplate: string,
-  metadata: ArtworkMetadata,
-): string {
-  return defaultFilenameBuilder.build(filePathTemplate, metadata)
 }
 
 /**

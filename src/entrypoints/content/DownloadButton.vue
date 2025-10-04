@@ -2,8 +2,12 @@
 import { ref, computed } from 'vue'
 
 import { PixivApiService } from '@/services/pixiv-api'
-import { getArtworkDownloader, buildFilename } from '@/utils/downloader'
-import { OptionStore } from '@/utils/options-store'
+import {
+  getArtworkDownloader,
+  FilenameBuilder,
+  DefaultFilenameSanitizer,
+} from '@/utils/downloader'
+import { OptionsService } from '@/utils/options-store'
 import { UI_CONFIG } from './constants'
 
 /**
@@ -27,9 +31,16 @@ const showDownloadError = ref(false)
 const artworkId = document.location.pathname.split('/').pop()!
 
 /**
+ * Services initialization
+ */
+const pixivApiService = new PixivApiService()
+const optionsService = new OptionsService()
+const filenameBuilder = new FilenameBuilder(new DefaultFilenameSanitizer())
+
+/**
  * Pre-fetch metadata to improve download performance
  */
-const metadataPromise = PixivApiService.fetchArtworkMetadata(artworkId)
+const metadataPromise = pixivApiService.fetchArtworkMetadata(artworkId)
 const artworkDownloader = getArtworkDownloader()
 
 /**
@@ -44,9 +55,12 @@ async function downloadFile(): Promise<void> {
   try {
     const [artworkMetadata, options] = await Promise.all([
       metadataPromise,
-      OptionStore.getOptions(),
+      optionsService.getOptions(),
     ])
-    const filename = buildFilename(options.filenameTemplate, artworkMetadata)
+    const filename = filenameBuilder.build(
+      options.filenameTemplate,
+      artworkMetadata,
+    )
 
     await artworkDownloader.downloadArtwork(
       filename,

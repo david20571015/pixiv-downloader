@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { onMounted, reactive, toRaw, ref } from 'vue'
-import { OptionStore, type Options } from '@/utils/options-store'
+import { OptionsService, type Options } from '@/utils/options-store'
 import { DOWNLOAD_CONFIG, OPTIONS_UI_CONFIG } from './constant'
 
+const optionsService = new OptionsService()
 const currentOptions = reactive({}) as Options
 const showSaveSuccess = ref(false)
 const showSaveError = ref(false)
@@ -13,7 +14,7 @@ const showResetError = ref(false)
  * Loads current options from storage into the reactive state
  */
 async function loadOptions(): Promise<void> {
-  Object.assign(currentOptions, await OptionStore.getOptions())
+  Object.assign(currentOptions, await optionsService.getOptions())
 }
 
 onMounted(loadOptions)
@@ -24,7 +25,7 @@ onMounted(loadOptions)
  */
 async function saveOptions(): Promise<void> {
   try {
-    await OptionStore.setOptions(toRaw(currentOptions))
+    await optionsService.setOptions(toRaw(currentOptions))
     showSaveSuccess.value = true
   } catch (error) {
     console.error('Failed to save options:', error)
@@ -39,7 +40,7 @@ async function saveOptions(): Promise<void> {
  */
 async function resetOptions(): Promise<void> {
   try {
-    await OptionStore.resetOptions()
+    await optionsService.resetOptions()
     await loadOptions()
     showResetSuccess.value = true
   } catch (error) {

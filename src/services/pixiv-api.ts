@@ -128,15 +128,4 @@ export class PixivApiService {
       )
     }
   }
-
-  /**
-   * Static method for backward compatibility
-   * @deprecated Create an instance of PixivApiService instead
-   */
-  static async fetchArtworkMetadata(
-    artworkId: string,
-  ): Promise<ArtworkMetadata> {
-    const service = new PixivApiService()
-    return service.fetchArtworkMetadata(artworkId)
-  }
 }

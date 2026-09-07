@@ -13,7 +13,8 @@
     "lint": "eslint src/ --fix",
     "check:compile": "vue-tsc --noEmit",
     "check:format": "prettier --check src/",
-    "check:lint": "eslint src/"
+    "check:lint": "eslint src/",
+    "test": "vitest run"
   },
   "dependencies": {
     "@webext-core/messaging": "^4.0.0",
@@ -34,6 +35,7 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.69.0",
     "vite-plugin-vuetify": "^2.1.3",
+    "vitest": "^5.0.0",
     "vue-tsc": "^3.3.11",
     "wxt": "^0.21.4"
   }

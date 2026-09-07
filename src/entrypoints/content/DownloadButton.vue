@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
-import { PixivApiService } from '@/services/pixiv-api'
-import { getArtworkDownloader, buildFilename } from '@/utils/downloader'
-import { OptionStore } from '@/utils/options-store'
+import { artworkDownloader } from '@/utils/downloader'
 import { UI_CONFIG } from './constants'
 
 enum DownloadState {
@@ -19,8 +17,13 @@ const isDownloadable = computed(
 const showDownloadError = ref(false)
 
 const artworkId = document.location.pathname.split('/').pop()!
-const metadataPromise = PixivApiService.fetchArtworkMetadata(artworkId)
-const artworkDownloader = getArtworkDownloader()
+
+onMounted(() => {
+  // Prefetch metadata into cache on mount for fast download response
+  artworkDownloader.prefetch(artworkId).catch((error) => {
+    console.warn('Failed to prefetch artwork metadata:', error)
+  })
+})
 
 async function downloadFile() {
   if (!isDownloadable.value) return
@@ -28,18 +31,7 @@ async function downloadFile() {
   downloadState.value = DownloadState.DOWNLOADING
 
   try {
-    const [artworkMetadata, options] = await Promise.all([
-      metadataPromise,
-      OptionStore.getOptions(),
-    ])
-    const filename = buildFilename(options.filenameTemplate, artworkMetadata)
-
-    await artworkDownloader.downloadArtwork(
-      filename,
-      artworkMetadata.urls[options.imageSize],
-      options.conflictAction,
-    )
-
+    await artworkDownloader.download(artworkId)
     downloadState.value = DownloadState.DOWNLOADED
   } catch (error) {
     console.error('Download failed:', error)

@@ -1,6 +1,11 @@
 import { PIXIV_CONFIG } from '@/entrypoints/content/constants'
 import type { ArtworkMetadata } from '@/services/pixiv-api'
-import { defineProxyService } from '@webext-core/proxy-service'
+import {
+  createProxyService,
+  registerService,
+  type ProxyService,
+  type ProxyServiceKey,
+} from '@webext-core/proxy-service'
 
 type KeysMatching<T, V> = keyof {
   [P in keyof T as T[P] extends V ? P : never]: P
@@ -55,5 +60,13 @@ function createArtworkDownloader() {
   }
 }
 
-export const [registerArtworkDownloader, getArtworkDownloader] =
-  defineProxyService('ArtworkDownloader', createArtworkDownloader)
+export type ArtworkDownloader = ReturnType<typeof createArtworkDownloader>
+export const ARTWORK_DOWNLOADER_KEY =
+  'ArtworkDownloader' as ProxyServiceKey<ArtworkDownloader>
+
+export const registerArtworkDownloader = () =>
+  registerService(ARTWORK_DOWNLOADER_KEY, createArtworkDownloader())
+
+let cachedArtworkDownloader: ProxyService<ArtworkDownloader> | null = null
+export const getArtworkDownloader = () =>
+  (cachedArtworkDownloader ??= createProxyService(ARTWORK_DOWNLOADER_KEY))

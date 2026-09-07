@@ -8,7 +8,7 @@
 export const PIXIV_CONFIG = {
   PROXY_HOSTNAME: 'i.pixiv.cat',
   API_BASE_URL: 'https://www.pixiv.net/ajax/illust',
-  ARTWORKS_PATTERN: 'https://www.pixiv.net/artworks/*',
+  ARTWORKS_PATTERN: 'https://www.pixiv.net/*artworks/*',
   SITE_PATTERN: 'https://www.pixiv.net/*',
 } as const
 

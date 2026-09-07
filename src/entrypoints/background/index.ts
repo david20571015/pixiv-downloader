@@ -1,32 +1,10 @@
 import { registerArtworkDownloader } from '@/utils/downloader'
+import {
+  setupDeclarativeNetRequest,
+  PIXIV_REFERER_RULE_ID,
+} from '@/utils/declarative-net-request'
 
-export const PIXIV_REFERER_RULE_ID = 1
-
-export async function setupDeclarativeNetRequest(): Promise<void> {
-  const rule: chrome.declarativeNetRequest.Rule = {
-    id: PIXIV_REFERER_RULE_ID,
-    priority: 1,
-    action: {
-      type: 'modifyHeaders',
-      requestHeaders: [
-        {
-          header: 'Referer',
-          operation: 'set',
-          value: 'https://www.pixiv.net/',
-        },
-      ],
-    },
-    condition: {
-      urlFilter: '||pximg.net',
-      resourceTypes: ['xmlhttprequest', 'image', 'other'],
-    },
-  }
-
-  await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: [PIXIV_REFERER_RULE_ID],
-    addRules: [rule],
-  })
-}
+export { PIXIV_REFERER_RULE_ID, setupDeclarativeNetRequest }
 
 export default defineBackground({
   type: 'module',
@@ -34,6 +12,9 @@ export default defineBackground({
   main() {
     setupDeclarativeNetRequest().catch((error) => {
       console.error('Failed to setup declarativeNetRequest rules:', error)
+    })
+    chrome.runtime.onInstalled?.addListener(() => {
+      setupDeclarativeNetRequest().catch(console.error)
     })
     registerArtworkDownloader()
   },

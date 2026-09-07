@@ -4,6 +4,9 @@
   "private": true,
   "version": "0.2.4",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "wxt",
     "build": "wxt build",

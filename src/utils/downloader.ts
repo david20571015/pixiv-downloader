@@ -1,4 +1,3 @@
-import { PIXIV_CONFIG } from '@/entrypoints/content/constants'
 import { PixivApiService, type ArtworkMetadata } from '@/services/pixiv-api'
 import { OptionStore, type Options } from '@/utils/options-store'
 import {
@@ -52,6 +51,19 @@ export interface RawFileDownloaderService {
   ): Promise<number>
 }
 
+export function arrayBufferToDataUrl(
+  buffer: ArrayBuffer,
+  mimeType: string = 'image/png',
+): string {
+  const bytes = new Uint8Array(buffer)
+  let binary = ''
+  const chunkSize = 8192
+  for (let i = 0; i < bytes.byteLength; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize))
+  }
+  return `data:${mimeType};base64,${btoa(binary)}`
+}
+
 function createRawFileDownloader(): RawFileDownloaderService {
   return {
     async downloadFile(
@@ -59,8 +71,29 @@ function createRawFileDownloader(): RawFileDownloaderService {
       url: string,
       conflictAction: chrome.downloads.FilenameConflictAction = 'uniquify',
     ) {
+      let downloadUrl = url
+
+      // If downloading from Pixiv CDN (pximg.net), fetch directly in background
+      // (exempt from CORS via host_permissions & Referer injected via declarativeNetRequest)
+      // and convert to Data URL so chrome.downloads does not trigger a 403 Forbidden.
+      if (url.includes('pximg.net')) {
+        const response = await fetch(url)
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch image from Pixiv (${url}): ${response.status} ${response.statusText}`,
+          )
+        }
+        const mimeType =
+          response.headers.get('content-type') ||
+          (filename.endsWith('.jpg') || filename.endsWith('.jpeg')
+            ? 'image/jpeg'
+            : 'image/png')
+        const buffer = await response.arrayBuffer()
+        downloadUrl = arrayBufferToDataUrl(buffer, mimeType)
+      }
+
       return await chrome.downloads.download({
-        url,
+        url: downloadUrl,
         filename,
         conflictAction,
       })
@@ -151,7 +184,6 @@ export class ArtworkDownloader {
 
     const parsedUrl = new URL(rawUrl)
     const ext = parsedUrl.pathname.split('.').pop() ?? 'png'
-    parsedUrl.hostname = PIXIV_CONFIG.PROXY_HOSTNAME
     const fullFilename = `${baseFilename}.${ext}`
 
     const downloadId = await this.downloadFileFn(

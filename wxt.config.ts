@@ -15,6 +15,7 @@ export default defineConfig({
     },
   }),
   manifest: {
-    permissions: ['downloads', 'storage'],
+    permissions: ['downloads', 'storage', 'declarativeNetRequest'],
+    host_permissions: ['*://*.pximg.net/*', '*://*.pixiv.net/*'],
   },
 })

@@ -3,6 +3,7 @@ import {
   buildFilename,
   ArtworkDownloader,
   sanitizeFilename,
+  arrayBufferToDataUrl,
 } from './downloader'
 import type { ArtworkMetadata } from '@/services/pixiv-api'
 import type { Options } from './options-store'
@@ -48,6 +49,14 @@ describe('buildFilename', () => {
   })
 })
 
+describe('arrayBufferToDataUrl', () => {
+  it('converts an ArrayBuffer to a valid Base64 data URL with specified mimeType', () => {
+    const data = new Uint8Array([72, 101, 108, 108, 111]) // 'Hello'
+    const dataUrl = arrayBufferToDataUrl(data.buffer, 'image/png')
+    expect(dataUrl).toBe('data:image/png;base64,SGVsbG8=')
+  })
+})
+
 describe('ArtworkDownloader', () => {
   it('caches prefetch promises to prevent duplicate network calls', async () => {
     const fetchMetadata = vi.fn().mockResolvedValue(mockMetadata)
@@ -83,7 +92,7 @@ describe('ArtworkDownloader', () => {
     expect(getOptions).toHaveBeenCalledTimes(1)
     expect(downloadFile).toHaveBeenCalledWith(
       'Pixiv/Artist_Name_(98765)/Test_Artwork_Special_Name__12345678.png',
-      'https://i.pixiv.cat/img-original/img/test_original.png',
+      'https://i.pximg.net/img-original/img/test_original.png',
       'uniquify',
     )
     expect(result).toEqual({
@@ -130,7 +139,7 @@ describe('ArtworkDownloader', () => {
 
     expect(downloadFile).toHaveBeenCalledWith(
       expect.stringMatching(/\.jpg$/),
-      'https://i.pixiv.cat/img-master/img/test_regular.jpg',
+      'https://i.pximg.net/img-master/img/test_regular.jpg',
       'uniquify',
     )
   })

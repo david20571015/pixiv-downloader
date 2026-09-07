@@ -19,13 +19,13 @@ jobs:
         node-version: [20.x]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
+          cache: 'npm'
 
       - name: Install dependencies
         run: |
@@ -47,8 +47,13 @@ jobs:
         continue-on-error: true
         run: npm run check:compile
 
+      - name: Run unit tests
+        id: test
+        continue-on-error: true
+        run: npm run test
+
       - name: Fail if any check failed
-        if: steps.format.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.compile.outcome == 'failure'
+        if: steps.format.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.compile.outcome == 'failure' || steps.test.outcome == 'failure'
         run: |
           echo "One or more checks failed."
           exit 1

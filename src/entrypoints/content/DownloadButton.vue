@@ -15,10 +15,19 @@ const isDownloadable = computed(
   () => downloadState.value === DownloadState.UNDOWNLOADED,
 )
 const showDownloadError = ref(false)
+const errorMessage = ref('')
 
-const artworkId = document.location.pathname.split('/').pop()!
+function getArtworkId(): string {
+  const match = window.location.pathname.match(/artworks\/(\d+)/)
+  if (match?.[1]) return match[1]
+  const segments = window.location.pathname.split('/').filter(Boolean)
+  return segments.pop() ?? ''
+}
+
+const artworkId = getArtworkId()
 
 onMounted(() => {
+  if (!artworkId) return
   // Prefetch metadata into cache on mount for fast download response
   artworkDownloader.prefetch(artworkId).catch((error) => {
     console.warn('Failed to prefetch artwork metadata:', error)
@@ -26,15 +35,25 @@ onMounted(() => {
 })
 
 async function downloadFile() {
-  if (!isDownloadable.value) return
+  if (!isDownloadable.value || !artworkId) return
 
   downloadState.value = DownloadState.DOWNLOADING
 
   try {
     await artworkDownloader.download(artworkId)
     downloadState.value = DownloadState.DOWNLOADED
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Download failed:', error)
+    const errStr = error instanceof Error ? error.message : String(error)
+    if (
+      errStr.includes('message port closed') ||
+      errStr.includes('context invalidated')
+    ) {
+      errorMessage.value =
+        '擴充功能已重新載入或連線中斷，請重新整理（F5）網頁後重試'
+    } else {
+      errorMessage.value = 'Failed to download artwork. Please try again later.'
+    }
     showDownloadError.value = true
     downloadState.value = DownloadState.UNDOWNLOADED
   }
@@ -50,7 +69,7 @@ async function downloadFile() {
     color="tonal"
     :timeout="UI_CONFIG.ERROR_TIMEOUT"
   >
-    Failed to download artwork. Please try again later.
+    {{ errorMessage || 'Failed to download artwork. Please try again later.' }}
   </v-snackbar>
 </template>
 

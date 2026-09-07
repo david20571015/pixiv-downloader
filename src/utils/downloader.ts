@@ -1,4 +1,3 @@
-import { PIXIV_CONFIG } from '@/entrypoints/content/constants'
 import { PixivApiService, type ArtworkMetadata } from '@/services/pixiv-api'
 import { OptionStore, type Options } from '@/utils/options-store'
 import {
@@ -7,6 +6,7 @@ import {
   type ProxyService,
   type ProxyServiceKey,
 } from '@webext-core/proxy-service'
+import { ensureDeclarativeNetRequest } from '@/utils/declarative-net-request'
 
 type KeysMatching<T, V> = keyof {
   [P in keyof T as T[P] extends V ? P : never]: P
@@ -52,6 +52,19 @@ export interface RawFileDownloaderService {
   ): Promise<number>
 }
 
+export function arrayBufferToDataUrl(
+  buffer: ArrayBuffer,
+  mimeType: string = 'image/png',
+): string {
+  const bytes = new Uint8Array(buffer)
+  let binary = ''
+  const chunkSize = 32768
+  for (let i = 0; i < bytes.byteLength; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize))
+  }
+  return `data:${mimeType};base64,${btoa(binary)}`
+}
+
 function createRawFileDownloader(): RawFileDownloaderService {
   return {
     async downloadFile(
@@ -59,8 +72,29 @@ function createRawFileDownloader(): RawFileDownloaderService {
       url: string,
       conflictAction: chrome.downloads.FilenameConflictAction = 'uniquify',
     ) {
+      let downloadUrl = url
+
+      // If downloading from Pixiv CDN (pximg.net), ensure DNR rules are ready
+      // and fetch in background, converting to Data URL to bypass native download 403.
+      if (url.includes('pximg.net')) {
+        await ensureDeclarativeNetRequest()
+        const response = await fetch(url)
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch image from Pixiv (${url}): ${response.status} ${response.statusText}`,
+          )
+        }
+        const mimeType =
+          response.headers.get('content-type') ||
+          (filename.endsWith('.jpg') || filename.endsWith('.jpeg')
+            ? 'image/jpeg'
+            : 'image/png')
+        const buffer = await response.arrayBuffer()
+        downloadUrl = arrayBufferToDataUrl(buffer, mimeType)
+      }
+
       return await chrome.downloads.download({
-        url,
+        url: downloadUrl,
         filename,
         conflictAction,
       })
@@ -71,8 +105,27 @@ function createRawFileDownloader(): RawFileDownloaderService {
 export const RAW_DOWNLOADER_KEY =
   'RawFileDownloader' as ProxyServiceKey<RawFileDownloaderService>
 
-export const registerRawFileDownloader = () =>
-  registerService(RAW_DOWNLOADER_KEY, createRawFileDownloader())
+export const registerRawFileDownloader = () => {
+  const service = createRawFileDownloader()
+  registerService(RAW_DOWNLOADER_KEY, service)
+
+  // Backward compatibility alias for any unrefreshed tabs using legacy ArtworkDownloader key
+  registerService(
+    'ArtworkDownloader' as ProxyServiceKey<RawFileDownloaderService>,
+    {
+      downloadArtwork: (
+        filename: string,
+        url: string,
+        conflictAction?: chrome.downloads.FilenameConflictAction,
+      ) => service.downloadFile(filename, url, conflictAction),
+      downloadFile: (
+        filename: string,
+        url: string,
+        conflictAction?: chrome.downloads.FilenameConflictAction,
+      ) => service.downloadFile(filename, url, conflictAction),
+    } as unknown as RawFileDownloaderService,
+  )
+}
 
 let cachedRawDownloader: ProxyService<RawFileDownloaderService> | null = null
 export const getRawFileDownloader = () =>
@@ -151,7 +204,6 @@ export class ArtworkDownloader {
 
     const parsedUrl = new URL(rawUrl)
     const ext = parsedUrl.pathname.split('.').pop() ?? 'png'
-    parsedUrl.hostname = PIXIV_CONFIG.PROXY_HOSTNAME
     const fullFilename = `${baseFilename}.${ext}`
 
     const downloadId = await this.downloadFileFn(
